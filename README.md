@@ -549,3 +549,5 @@ Special thanks to our incredible community of students, recruiters, and educator
 *HIREZY - Where AI Meets Ambition*
 
 </div>
+#   h i r e z y - p l a t f o r m  
+ 
