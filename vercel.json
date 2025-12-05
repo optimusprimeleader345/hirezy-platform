@@ -3,7 +3,6 @@
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "rootDirectory": ".",
   "regions": ["sin1"],
   "functions": {
     "pages/api/**/*.ts": {
