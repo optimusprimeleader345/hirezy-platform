@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  # Main Hirezy Application
+  hirezy-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - GROK_ENDPOINT=http://hirezy-ai:11434
+      - DATABASE_URL=postgresql://hirezy:${POSTGRES_PASSWORD}@hirezy-db:5432/hirezy
+      - REDIS_URL=redis://hirezy-cache:6379
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=https://hirezy.com
+      - MAX_AI_REQUESTS_PER_MINUTE=100
+      - CACHE_TTL=300
+      - ENABLE_METRICS=true
+    ports:
+      - "3000:3000"
+    depends_on:
+      hirezy-db:
+        condition: service_healthy
+      hirezy-cache:
+        condition: service_started
+      hirezy-ai:
+        condition: service_started
+    volumes:
+      - hirezy_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - hirezy-network
+
+  # Grok AI Service (Self-hosted)
+  hirezy-ai:
+    image: ollama/ollama:latest
+    container_name: hirezy-ai
+    volumes:
+      - grok_models:/root/.ollama
+      - grok_data:/tmp/ollama
+    ports:
+      - "11434:11434"
+    command: ["serve"]
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_MAX_QUEUE=512
+      - OLLAMA_RUNNERS_DIR=/tmp/ollama/runners
+    restart: unless-stopped
+    networks:
+      - hirezy-network
+
+  # PostgreSQL Database
+  hirezy-db:
+    image: postgres:15-alpine
+    container_name: hirezy-db
+    environment:
+      - POSTGRES_DB=hirezy
+      - POSTGRES_USER=hirezy
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hirezy_secure_2024}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hirezy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hirezy-network
+
+  # Redis Cache
+  hirezy-cache:
+    image: redis:7-alpine
+    container_name: hirezy-cache
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-hirezy_cache_2024}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - hirezy-network
+
+  # Monitoring & Analytics (Optional)
+  hirezy-monitor:
+    image: prom/prometheus:latest
+    container_name: hirezy-monitor
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    networks:
+      - hirezy-network
+    profiles:
+      - monitoring
+
+  # Reverse Proxy (Production)
+  hirezy-proxy:
+    image: nginx:alpine
+    container_name: hirezy-proxy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - hirezy-app
+    restart: unless-stopped
+    networks:
+      - hirezy-network
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grok_models:
+    driver: local
+  grok_data:
+    driver: local
+  hirezy_logs:
+    driver: local
+
+networks:
+  hirezy-network:
+    driver: bridge

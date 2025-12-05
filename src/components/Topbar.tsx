@@ -1,0 +1,110 @@
+'use client'
+
+import { useState } from 'react'
+import { Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
+
+interface TopbarProps {
+  role: 'student' | 'recruiter' | 'admin'
+}
+
+export function Topbar({ role }: TopbarProps) {
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false)
+  const router = useRouter()
+
+  const handleLogout = () => {
+    try {
+      // Clear any stored session/auth data
+      localStorage.removeItem('hirezy_auth')
+      localStorage.clear() // Clear all localStorage
+
+      // Force redirect to login page
+      window.location.href = '/login'
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Fallback redirect
+      window.location.href = '/login'
+    }
+  }
+
+  return (
+    <div className="h-16 bg-slate-900 border-b border-slate-700 px-6 flex items-center justify-between relative">
+      <div className="font-semibold text-lg text-white">
+        Admin Dashboard
+      </div>
+      <div className="flex items-center space-x-4">
+        <Button variant="ghost" size="icon" className="text-slate-300 hover:bg-slate-800 hover:text-white">
+          <Bell className="h-5 w-5" />
+        </Button>
+
+        {/* Profile Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+              <User className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-white hidden md:block">Admin</span>
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          </button>
+
+          {showProfileDropdown && (
+            <div className="absolute top-full right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg py-2 z-50">
+              {/* Settings Section */}
+              <div className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Settings
+              </div>
+              <button className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center">
+                <User className="h-4 w-4 mr-2" />
+                Profile
+              </button>
+              <button className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center">
+                <Settings className="h-4 w-4 mr-2" />
+                Preferences
+              </button>
+              <button
+                onClick={() => {
+                  setShowProfileDropdown(false)
+                  window.location.href = '/account/settings'
+                }}
+                className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Account Settings
+              </button>
+
+              {/* Separator */}
+              <div className="border-t border-slate-600 my-1"></div>
+
+              {/* Logout Section */}
+              <div className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Account
+              </div>
+              <button
+                onClick={() => {
+                  setShowProfileDropdown(false)
+                  handleLogout()
+                }}
+                className="w-full text-left px-4 py-2 text-slate-300 hover:bg-red-900/30 hover:text-red-400 flex items-center"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Close dropdown when clicking outside */}
+      {showProfileDropdown && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowProfileDropdown(false)}
+        />
+      )}
+    </div>
+  )
+}

@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./prisma/dev.db"
+}
+
+model User {
+  id        String         @id @default(uuid())
+  email     String         @unique
+  name      String?
+  role      String
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  roadmap   CareerRoadmap?
+
+  gigs Gig[]
+  applications Application[]
+
+  SentMessages     Message[] @relation("SentMessages")
+  ReceivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model CareerRoadmap {
+  id             String   @id @default(uuid())
+  studentId      String   @unique
+  currentStage   String   @default("Beginner")
+  completedSteps String   @default("[]")
+  nextSteps      String   @default("[]")
+  notes          String?
+  updatedAt      DateTime @updatedAt
+
+  student User @relation(fields: [studentId], references: [id])
+}
+
+model Gig {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  recruiterId  String
+  budgetMin    Int?
+  budgetMax    Int?
+  currency     String?   @default("USD")
+  deadline     DateTime?
+  skills       String   @default("[]")
+  status       String    @default("pending") // pending | approved | rejected
+  category     String?  // web-development, mobile, ai-ml, etc.
+  flagged      Boolean  @default(false)
+  flagReason   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  recruiter User @relation(fields: [recruiterId], references: [id])
+
+  applications Application[]
+  @@index([recruiterId])
+  @@index([status])
+}
+
+model Application {
+  id         String   @id @default(uuid())
+  gigId      String
+  studentId  String
+  coverLetter String?
+  proposalUrl String?   // optional link to pdf stored in storage
+  aiScore    Float?     // recruiter scoring computed by AI
+  status     String     @default("received") // received | shortlisted | interview | offered | rejected
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  gig     Gig  @relation(fields: [gigId], references: [id])
+  student User @relation(fields: [studentId], references: [id])
+
+  @@index([gigId])
+  @@index([studentId])
+  @@index([status])
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  content     String
+  createdAt   DateTime @default(now())
+  read        Boolean  @default(false)
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+model Interview {
+  id          String   @id @default(uuid())
+  applicationId String?   // optional link if created from an application
+  gigId       String?
+  recruiterId  String
+  studentId    String
+  scheduledAt  DateTime
+  mode         String   @default("zoom") // zoom | meet | in-person | other
+  location     String?
+  status       String   @default("scheduled") // scheduled | completed | cancelled | rescheduled
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([recruiterId])
+  @@index([studentId])
+  @@index([status])
+}
+
+model SupportTicket {
+  id          String   @id @default(uuid())
+  userId      String
+  userType    String   // "student" | "recruiter"
+  subject     String
+  message     String
+  status      String   @default("open") // open | in_progress | resolved
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  replies SupportReply[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([userType])
+}
+
+model SupportReply {
+  id         String   @id @default(uuid())
+  ticketId   String
+  adminId    String   // admin providing the reply
+  adminName  String   // readable admin name
+  replyMessage String
+  createdAt  DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id])
+
+  @@index([ticketId])
+}
+
+model Transaction {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String   // "deposit", "withdrawal", "commission"
+  amount     Float
+  commission Float?
+  status     String   // "success", "pending", "failed"
+  createdAt  DateTime @default(now())
+}

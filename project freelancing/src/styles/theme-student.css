@@ -1,0 +1,80 @@
+/* Student Neon Theme Variables - DO NOT LEAK TO OTHER ROLES */
+
+:root {
+  /* Neon Colors */
+  --neon-cyan: #6EE7FF;
+  --neon-purple: #C084FC;
+  --neon-blue: #00d4ff;
+
+  /* Background */
+  --student-bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2d2d2d 100%);
+
+  /* Glass Effect */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(20px);
+}
+
+.theme-student {
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+
+  /* Card styles */
+  --glass-bg: var(--glass-bg);
+  --glass-border: var(--glass-border);
+  --glass-blur: var(--glass-blur);
+
+  /* Primary accent */
+  --primary: var(--neon-cyan);
+  --primary-foreground: #000000;
+
+  /* Secondary for highlights */
+  --accent: var(--neon-purple);
+  --accent-foreground: #ffffff;
+
+  /* Borders and muted elements */
+  --muted: rgba(255, 255, 255, 0.1);
+  --muted-foreground: rgba(255, 255, 255, 0.7);
+  --border: rgba(255, 255, 255, 0.15);
+
+  /* Input and ring */
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: var(--neon-cyan);
+}
+
+/* Neon Glow Effect */
+.neon-glow {
+  box-shadow:
+    0 0 10px rgba(110, 231, 255, 0.3),
+    0 0 20px rgba(110, 231, 255, 0.2),
+    0 0 40px rgba(110, 231, 255, 0.1);
+}
+
+.neon-glow-purple {
+  box-shadow:
+    0 0 10px rgba(192, 132, 252, 0.3),
+    0 0 20px rgba(192, 132, 252, 0.2),
+    0 0 40px rgba(192, 132, 252, 0.1);
+}
+
+/* Glass Card Styles */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/* Gradient Background */
+.student-bg {
+  background: var(--student-bg);
+}
+
+/* Text Gradients */
+.text-gradient {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
