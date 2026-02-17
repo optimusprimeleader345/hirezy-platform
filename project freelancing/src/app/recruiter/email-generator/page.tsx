@@ -6,9 +6,9 @@ import EmailGeneratorForm from '@/components/recruiter/EmailGeneratorForm'
 
 export default function EmailGeneratorPage() {
   const searchParams = useSearchParams()
-  const candidateId = searchParams.get('candidateId')
-  const gigId = searchParams.get('gigId')
-  const type = searchParams.get('type') || 'followup'
+  const candidateId = searchParams?.get('candidateId')
+  const gigId = searchParams?.get('gigId')
+  const type = searchParams?.get('type') || 'followup'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">

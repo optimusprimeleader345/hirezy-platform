@@ -6,19 +6,72 @@ import { MonitoringSidebar } from '@/components/MonitoringSidebar'
 import { ChartWrapper } from '@/components/Chart/ChartWrapper'
 import { HeatmapComponent } from '@/components/Chart/HeatmapComponent'
 import { AdminGlassCard } from '@/components/cards/AdminGlassCard'
-import { Zap, TrendingUp, Activity, Shield, BarChart3, DollarSign, AlertTriangle } from 'lucide-react'
-import {
-  platformGrowthData,
-  aiPlatformHealth,
-  userActivityHeatmap,
-  fraudDetectionData,
-  topSkillsTrends,
-  revenueOverview
-} from '@/lib/demoData'
+import { MonitoringSkeleton } from '@/components/MonitoringSkeleton'
+import { useMonitoringData } from '@/hooks/useMonitoringData'
+import { Zap, TrendingUp, Activity, Shield, BarChart3, DollarSign, AlertTriangle, RefreshCw, Clock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 function MonitoringContent() {
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('tab') || 'platform-growth'
+  
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useMonitoringData()
+
+  // Format the last updated time
+  const getLastUpdatedText = () => {
+    if (!dataUpdatedAt) return 'Loading...'
+    const seconds = Math.floor((Date.now() - dataUpdatedAt) / 1000)
+    if (seconds < 60) return 'Just now'
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
+    return `${Math.floor(seconds / 3600)} hours ago`
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen">
+        <MonitoringSidebar activeTab={activeTab} />
+        <div className="flex-1 p-8">
+          <MonitoringSkeleton />
+        </div>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-screen">
+        <MonitoringSidebar activeTab={activeTab} />
+        <div className="flex-1 p-8">
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+            <AlertTriangle className="h-16 w-16 text-red-400 mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-2">Failed to Load Data</h2>
+            <p className="text-slate-300 mb-6 max-w-md">
+              {error instanceof Error ? error.message : 'An unexpected error occurred while fetching monitoring data.'}
+            </p>
+            <Button 
+              onClick={() => refetch()} 
+              variant="outline" 
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <div className="flex min-h-screen">
+        <MonitoringSidebar activeTab={activeTab} />
+        <div className="flex-1 p-8">
+          <div className="text-center text-slate-300">No data available</div>
+        </div>
+      </div>
+    )
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -31,7 +84,7 @@ function MonitoringContent() {
             </div>
             <ChartWrapper
               title="Platform User Growth Trends (Last 6 Months)"
-              data={platformGrowthData}
+              data={data.platformGrowthData}
               dataKeys={['students', 'recruiters']}
               colors={['#3B82F6', '#EF4444']}
               type="line"
@@ -41,22 +94,24 @@ function MonitoringContent() {
               <AdminGlassCard title="Growth Rate">
                 <div className="text-center py-6">
                   <TrendingUp className="h-12 w-12 text-green-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">+42.5%</div>
+                  <div className="text-2xl font-bold text-white">
+                    {data.monthlyGrowth > 0 ? '+' : ''}{data.monthlyGrowth}%
+                  </div>
                   <div className="text-sm text-slate-400">Monthly Growth Rate</div>
                 </div>
               </AdminGlassCard>
               <AdminGlassCard title="Total Users">
                 <div className="text-center py-6">
                   <Activity className="h-12 w-12 text-blue-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">27,980</div>
+                  <div className="text-2xl font-bold text-white">{data.totalUsers.toLocaleString()}</div>
                   <div className="text-sm text-slate-400">Active Platform Users</div>
                 </div>
               </AdminGlassCard>
-              <AdminGlassCard title="Conversion Rate">
+              <AdminGlassCard title="New Users This Month">
                 <div className="text-center py-6">
                   <TrendingUp className="h-12 w-12 text-purple-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">6.8%</div>
-                  <div className="text-sm text-slate-400">Lead to User Conversion</div>
+                  <div className="text-2xl font-bold text-white">{data.activeUsers.toLocaleString()}</div>
+                  <div className="text-sm text-slate-400">Users Joined (30 days)</div>
                 </div>
               </AdminGlassCard>
             </div>
@@ -77,7 +132,7 @@ function MonitoringContent() {
                     <Zap className="h-8 w-8 text-yellow-400" />
                     <div>
                       <div className="text-sm text-slate-400">AI Requests Today</div>
-                      <div className="text-2xl font-bold text-white">{aiPlatformHealth.aiRequestsToday.toLocaleString()}</div>
+                      <div className="text-2xl font-bold text-white">{data.aiPlatformHealth.aiRequestsToday.toLocaleString()}</div>
                       <div className="text-xs text-green-400">+12% from yesterday</div>
                     </div>
                   </div>
@@ -90,7 +145,7 @@ function MonitoringContent() {
                     <TrendingUp className="h-8 w-8 text-green-400" />
                     <div>
                       <div className="text-sm text-slate-400">Success Rate</div>
-                      <div className="text-2xl font-bold text-white">{aiPlatformHealth.aiSuccessRate}%</div>
+                      <div className="text-2xl font-bold text-white">{data.aiPlatformHealth.aiSuccessRate}%</div>
                       <div className="text-xs text-green-400">Excellent performance</div>
                     </div>
                   </div>
@@ -103,7 +158,7 @@ function MonitoringContent() {
                     <BarChart3 className="h-8 w-8 text-blue-400" />
                     <div>
                       <div className="text-sm text-slate-400">Avg Latency</div>
-                      <div className="text-2xl font-bold text-white">{aiPlatformHealth.latencyMs}ms</div>
+                      <div className="text-2xl font-bold text-white">{data.aiPlatformHealth.latencyMs}ms</div>
                       <div className="text-xs text-green-400">Under 200ms target</div>
                     </div>
                   </div>
@@ -115,44 +170,44 @@ function MonitoringContent() {
             </AdminGlassCard>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AdminGlassCard title="AI Service Uptime">
+              <AdminGlassCard title="Platform Statistics">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">OpenAI API</span>
-                    <span className="text-green-400 font-semibold">99.9%</span>
+                    <span className="text-slate-300">Total Students</span>
+                    <span className="text-white font-semibold">{data.studentCount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Google AI API</span>
-                    <span className="text-green-400 font-semibold">99.8%</span>
+                    <span className="text-slate-300">Total Recruiters</span>
+                    <span className="text-white font-semibold">{data.recruiterCount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Resume Analyzer</span>
-                    <span className="text-green-400 font-semibold">100%</span>
+                    <span className="text-slate-300">Active Gigs</span>
+                    <span className="text-white font-semibold">{data.activeGigs.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Interview Coach</span>
-                    <span className="text-green-400 font-semibold">99.7%</span>
+                    <span className="text-slate-300">Total Applications</span>
+                    <span className="text-white font-semibold">{data.totalApplications.toLocaleString()}</span>
                   </div>
                 </div>
               </AdminGlassCard>
 
-              <AdminGlassCard title="AI Feature Usage">
+              <AdminGlassCard title="Recent Activity">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Resume AI (Today)</span>
-                    <span className="text-white font-semibold">2,342 uses</span>
+                    <span className="text-slate-300">Applications This Month</span>
+                    <span className="text-white font-semibold">{data.applicationsThisMonth.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Career Coach (Today)</span>
-                    <span className="text-white font-semibold">1,856 uses</span>
+                    <span className="text-slate-300">Shortlisted Candidates</span>
+                    <span className="text-green-400 font-semibold">{data.shortlistedCount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Interview Prep (Today)</span>
-                    <span className="text-white font-semibold">987 uses</span>
+                    <span className="text-slate-300">Interviews Scheduled</span>
+                    <span className="text-blue-400 font-semibold">{data.interviewsScheduled.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Job Matching (Today)</span>
-                    <span className="text-white font-semibold">3,421 matches</span>
+                    <span className="text-slate-300">Pending Gigs</span>
+                    <span className="text-yellow-400 font-semibold">{data.pendingGigs.toLocaleString()}</span>
                   </div>
                 </div>
               </AdminGlassCard>
@@ -169,41 +224,43 @@ function MonitoringContent() {
             </div>
             <HeatmapComponent
               title="Weekly User Activity Patterns"
-              data={userActivityHeatmap}
+              data={data.userActivityHeatmap}
             />
             <AdminGlassCard title="Activity Insights">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Peak Hours Analysis</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">User Breakdown</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Peak weekday hours:</span>
-                      <span className="text-white font-semibold">2-4 PM</span>
+                      <span className="text-slate-300">Total Students:</span>
+                      <span className="text-white font-semibold">{data.studentCount.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Peak weekend hours:</span>
-                      <span className="text-white font-semibold">10 AM-1 PM</span>
+                      <span className="text-slate-300">Total Recruiters:</span>
+                      <span className="text-white font-semibold">{data.recruiterCount.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Lowest activity:</span>
-                      <span className="text-white font-semibold">3-6 AM</span>
+                      <span className="text-slate-300">Platform Admins:</span>
+                      <span className="text-white font-semibold">{data.adminCount.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">User Behavior Patterns</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">Engagement Metrics</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Avg session duration:</span>
-                      <span className="text-white font-semibold">18.5 min</span>
+                      <span className="text-slate-300">Active Users (30d):</span>
+                      <span className="text-green-400 font-semibold">{data.activeUsers.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Most active day:</span>
-                      <span className="text-white font-semibold">Tuesday</span>
+                      <span className="text-slate-300">Monthly Growth:</span>
+                      <span className={`font-semibold ${data.monthlyGrowth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {data.monthlyGrowth > 0 ? '+' : ''}{data.monthlyGrowth}%
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Mobile vs Desktop:</span>
-                      <span className="text-white font-semibold">62% / 38%</span>
+                      <span className="text-slate-300">Total Platform Users:</span>
+                      <span className="text-blue-400 font-semibold">{data.totalUsers.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -228,8 +285,8 @@ function MonitoringContent() {
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm text-red-400">Suspicious Accounts</div>
-                    <div className="text-2xl font-bold text-white">{fraudDetectionData.suspiciousAccounts}</div>
-                    <div className="text-xs text-slate-400">{fraudDetectionData.lastDetection}</div>
+                    <div className="text-2xl font-bold text-white">{data.fraudDetectionData.suspiciousAccounts}</div>
+                    <div className="text-xs text-slate-400">{data.fraudDetectionData.lastDetection}</div>
                   </div>
                 </div>
                 <div className="p-6 bg-orange-900/30 rounded-lg border border-orange-700/50">
@@ -239,7 +296,7 @@ function MonitoringContent() {
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm text-orange-400">High Risk Activities</div>
-                    <div className="text-2xl font-bold text-white">{fraudDetectionData.highRiskActivities}</div>
+                    <div className="text-2xl font-bold text-white">{data.fraudDetectionData.highRiskActivities}</div>
                     <div className="text-xs text-slate-400">All monitored</div>
                   </div>
                 </div>
@@ -250,7 +307,7 @@ function MonitoringContent() {
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm text-yellow-400">Auto-Flagged Proposals</div>
-                    <div className="text-2xl font-bold text-white">{fraudDetectionData.autoFlaggedProposals}</div>
+                    <div className="text-2xl font-bold text-white">{data.fraudDetectionData.autoFlaggedProposals}</div>
                     <div className="text-xs text-slate-400">Under review</div>
                   </div>
                 </div>
@@ -258,44 +315,36 @@ function MonitoringContent() {
             </AdminGlassCard>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AdminGlassCard title="Security Alerts History">
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2 border-b border-slate-700">
-                    <span className="text-slate-300">Login from unknown location</span>
-                    <span className="text-xs text-red-400">2 min ago</span>
+              <AdminGlassCard title="Support Tickets">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Open Tickets</span>
+                    <span className="text-red-400 font-semibold">{data.openTickets.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-slate-700">
-                    <span className="text-slate-300">Bulk account creation detected</span>
-                    <span className="text-xs text-orange-400">15 min ago</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Resolved Tickets</span>
+                    <span className="text-green-400 font-semibold">{data.resolvedTickets.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-slate-700">
-                    <span className="text-slate-300">Suspicious payment pattern</span>
-                    <span className="text-xs text-yellow-400">1 hour ago</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-slate-700">
-                    <span className="text-slate-300">IP address blocked</span>
-                    <span className="text-xs text-green-400">2 hours ago</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300">Total Tickets</span>
+                    <span className="text-white font-semibold">{(data.openTickets + data.resolvedTickets).toLocaleString()}</span>
                   </div>
                 </div>
               </AdminGlassCard>
 
-              <AdminGlassCard title="AI Fraud Prevention Stats">
+              <AdminGlassCard title="Platform Health">
                 <div className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-slate-300">False positives today:</span>
-                    <span className="text-white font-semibold">0.2%</span>
+                    <span className="text-slate-300">AI Success Rate:</span>
+                    <span className="text-green-400 font-semibold">{data.aiPlatformHealth.aiSuccessRate}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-300">Accuracy rate:</span>
-                    <span className="text-green-400 font-semibold">98.7%</span>
+                    <span className="text-slate-300">Avg Response Time:</span>
+                    <span className="text-green-400 font-semibold">{data.aiPlatformHealth.latencyMs}ms</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-300">Threats blocked (week):</span>
-                    <span className="text-white font-semibold">47 attempts</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">System uptime:</span>
-                    <span className="text-green-400 font-semibold">100%</span>
+                    <span className="text-slate-300">System Status:</span>
+                    <span className="text-green-400 font-semibold capitalize">{data.aiPlatformHealth.status}</span>
                   </div>
                 </div>
               </AdminGlassCard>
@@ -311,9 +360,9 @@ function MonitoringContent() {
               <p className="text-slate-300">Track the most in-demand skills and growth trends</p>
             </div>
             <ChartWrapper
-              title="Skill Growth Trends (Monthly Change %)"
-              data={topSkillsTrends}
-              dataKey="growth"
+              title="Skill Demand (Based on Gig Postings)"
+              data={data.topSkillsTrends}
+              dataKey="current"
               type="bar"
               colors={['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444']}
               className="w-full"
@@ -321,41 +370,44 @@ function MonitoringContent() {
             <AdminGlassCard title="Skills Market Insights">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Top Growing Skills</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">Top In-Demand Skills</h3>
                   <div className="space-y-3">
-                    {topSkillsTrends.slice(0, 3).map((skill, index) => (
+                    {data.topSkillsTrends.slice(0, 5).map((skill, index) => (
                       <div key={skill.skill} className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
                           <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm ${
-                            index === 0 ? 'bg-purple-600' : index === 1 ? 'bg-blue-600' : 'bg-green-600'
+                            index === 0 ? 'bg-purple-600' : 
+                            index === 1 ? 'bg-blue-600' : 
+                            index === 2 ? 'bg-green-600' : 
+                            index === 3 ? 'bg-yellow-600' : 'bg-red-600'
                           }`}>
                             {index + 1}
                           </span>
                           <span className="text-white font-medium">{skill.skill}</span>
                         </div>
-                        <span className="text-green-400 font-semibold">+{skill.growth}%</span>
+                        <span className="text-slate-300 font-semibold">{skill.current} gigs</span>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Market Demand</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">Platform Activity</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Jobs posting skills:</span>
-                      <span className="text-white font-semibold">1,245 active</span>
+                      <span className="text-slate-300">Total Gigs Posted:</span>
+                      <span className="text-white font-semibold">{data.totalGigs.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Students learning:</span>
-                      <span className="text-white font-semibold">3,892 enrolled</span>
+                      <span className="text-slate-300">Active Gigs:</span>
+                      <span className="text-green-400 font-semibold">{data.activeGigs.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Avg. salary premium:</span>
-                      <span className="text-white font-semibold">+$15,200</span>
+                      <span className="text-slate-300">Pending Approval:</span>
+                      <span className="text-yellow-400 font-semibold">{data.pendingGigs.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-300">Hiring difficulty:</span>
-                      <span className="text-red-400 font-semibold">High</span>
+                      <span className="text-slate-300">Completed Projects:</span>
+                      <span className="text-blue-400 font-semibold">{data.completedGigs.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -373,32 +425,32 @@ function MonitoringContent() {
             </div>
             <ChartWrapper
               title="Revenue & Commission Trends (Last 6 Months)"
-              data={revenueOverview}
+              data={data.revenueOverview}
               dataKeys={['platformRevenue', 'commission']}
               colors={['#10B981', '#06B6D4']}
               type="area"
               className="w-full"
             />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <AdminGlassCard title="Monthly Revenue">
+              <AdminGlassCard title="Total Revenue">
                 <div className="text-center py-6">
                   <DollarSign className="h-12 w-12 text-green-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">$55,700</div>
-                  <div className="text-sm text-green-400">+23% from last month</div>
+                  <div className="text-2xl font-bold text-white">${data.totalRevenue.toLocaleString()}</div>
+                  <div className="text-sm text-slate-400">All Time Revenue</div>
                 </div>
               </AdminGlassCard>
-              <AdminGlassCard title="Total Commission">
+              <AdminGlassCard title="This Month">
                 <div className="text-center py-6">
                   <BarChart3 className="h-12 w-12 text-blue-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">$15,420</div>
-                  <div className="text-sm text-blue-400">18.3% of total revenue</div>
+                  <div className="text-2xl font-bold text-white">${data.revenueThisMonth.toLocaleString()}</div>
+                  <div className="text-sm text-slate-400">Monthly Revenue</div>
                 </div>
               </AdminGlassCard>
-              <AdminGlassCard title="Growth Rate">
+              <AdminGlassCard title="Commission">
                 <div className="text-center py-6">
                   <TrendingUp className="h-12 w-12 text-purple-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">+31.8%</div>
-                  <div className="text-sm text-purple-400">Year over year growth</div>
+                  <div className="text-2xl font-bold text-white">${data.commissionThisMonth.toLocaleString()}</div>
+                  <div className="text-sm text-slate-400">Monthly Commission</div>
                 </div>
               </AdminGlassCard>
             </div>
@@ -406,7 +458,7 @@ function MonitoringContent() {
         )
 
       default:
-        return <div>Select a monitoring tab from the sidebar</div>
+        return <div className="text-slate-300">Select a monitoring tab from the sidebar</div>
     }
   }
 
@@ -414,6 +466,20 @@ function MonitoringContent() {
     <div className="flex min-h-screen">
       <MonitoringSidebar activeTab={activeTab} />
       <div className="flex-1 p-8">
+        {/* Last Updated Timestamp */}
+        <div className="flex justify-end items-center gap-2 mb-4 text-sm text-slate-400">
+          <Clock className="h-4 w-4" />
+          <span>Last updated: {getLastUpdatedText()}</span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => refetch()} 
+            className="ml-2 h-8 px-2"
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
         {renderContent()}
       </div>
     </div>
@@ -422,7 +488,7 @@ function MonitoringContent() {
 
 export default function MonitoringPage() {
   return (
-    <Suspense fallback={<div>Loading monitoring dashboard...</div>}>
+    <Suspense fallback={<MonitoringSkeleton />}>
       <MonitoringContent />
     </Suspense>
   )

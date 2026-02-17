@@ -23,7 +23,7 @@ import {
 export default function OfferLetterPage() {
   const params = useParams()
   const router = useRouter()
-  const candidateId = params.candidateId as string
+  const candidateId = params?.candidateId as string
 
   // Form data
   const [payRange, setPayRange] = useState('')

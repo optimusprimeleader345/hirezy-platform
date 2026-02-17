@@ -58,10 +58,11 @@ const studentMenu = [
   { name: 'AI Career Timeline Predictor', href: '/student/career-timeline', icon: Clock, category: 'AI Assistants' },
 
   // Analytics & Intelligence
-  { name: 'Job-Match Scoring', href: '/student/job-match', icon: TrendingUp, category: 'Analytics & Intelligence' },
-  { name: 'Performance Analytics', href: '/student/performance', icon: BarChart3, category: 'Analytics & Intelligence' },
+  { name: 'Analytics Dashboard', href: '/student/analytics-hub', icon: BarChart3, category: 'Analytics & Intelligence' },
+  { name: 'Job-Match Scoring', href: '/student/job-match', icon: Target, category: 'Analytics & Intelligence' },
+  { name: 'Performance Analytics', href: '/student/performance', icon: TrendingUp, category: 'Analytics & Intelligence' },
   { name: 'Market Demand Intelligence', href: '/student/market-demand', icon: TrendingUp, category: 'Analytics & Intelligence' },
-  { name: 'Real-time Job Market Intelligence', href: '/student/market-intelligence', icon: BarChart3, category: 'Analytics & Intelligence' },
+  { name: 'Real-time Job Market Intelligence', href: '/student/market-intelligence', icon: TrendingUp, category: 'Analytics & Intelligence' },
 
   // Profile Management
   { name: 'Profile Optimizer', href: '/student/profile-optimizer', icon: Trophy, category: 'Profile Management' },

@@ -26,10 +26,12 @@ export default function ComparisonPage() {
 
   // Get candidate IDs from URL
   useEffect(() => {
-    const candidatesParam = searchParams.get('candidates')
-    if (candidatesParam) {
-      const ids = candidatesParam.split(',')
-      setSelectedCandidateIds(ids)
+    if (searchParams) {
+      const candidatesParam = searchParams.get('candidates')
+      if (candidatesParam) {
+        const ids = candidatesParam.split(',')
+        setSelectedCandidateIds(ids)
+      }
     }
   }, [searchParams])
 

@@ -61,7 +61,7 @@ export default function StudentDashboard() {
           getEarnings(),
           getStudentStats()
         ])
-        setUser(userData)
+        setUser({ ...userData, profileCompleted: (userData as any).profileCompleted ?? 0 } as User)
         setGigs(gigsData)
         setEarnings(earningsData)
         setStats(statsData)

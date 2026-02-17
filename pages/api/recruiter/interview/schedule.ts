@@ -13,7 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "missing_required_fields" });
     }
 
-    if (!["online", "offline"].includes(mode)) {
+    // Map mode to schema values: zoom | meet | in-person | other
+    const validModes = ["zoom", "meet", "in-person", "other"];
+    const mappedMode = mode === "online" ? "zoom" : mode === "offline" ? "in-person" : mode;
+    if (!validModes.includes(mappedMode)) {
       return res.status(400).json({ error: "invalid_mode" });
     }
 
@@ -28,12 +31,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "interview_cannot_be_in_past" });
     }
 
+    // Get application to fetch recruiterId and studentId
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: { gig: true }
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "application_not_found" });
+    }
+
     const interview = await prisma.interview.create({
       data: {
         applicationId,
-        date: interviewDateTime,
-        mode,
-        meetingLink: meetingLink || null,
+        gigId: application.gigId,
+        recruiterId: application.gig.recruiterId,
+        studentId: application.studentId,
+        scheduledAt: interviewDateTime,
+        mode: mappedMode,
+        location: meetingLink || null,
         notes: notes || null,
         status: "scheduled",
       },

@@ -377,3 +377,48 @@ export const revenueOverview = [
   { month: 'May', platformRevenue: 35800, commission: 12200, transactions: 1890, total: 48000 },
   { month: 'Jun', platformRevenue: 41200, commission: 14500, transactions: 2150, total: 55700 }
 ];
+
+// Recruiter Analytics Data
+export const recruiterHiringAnalytics = [
+  { month: 'Jan', interviews: 45, hired: 12, submitted: 120, offers: 18 },
+  { month: 'Feb', interviews: 52, hired: 15, submitted: 135, offers: 22 },
+  { month: 'Mar', interviews: 48, hired: 14, submitted: 142, offers: 20 },
+  { month: 'Apr', interviews: 58, hired: 18, submitted: 158, offers: 25 },
+  { month: 'May', interviews: 62, hired: 20, submitted: 165, offers: 28 },
+  { month: 'Jun', interviews: 68, hired: 22, submitted: 180, offers: 32 },
+];
+
+export const candidateQualityMetrics = {
+  averageScore: 87.5,
+  topPerformers: 34,
+  needsImprovement: 12,
+  trend: 'up'
+};
+
+export const timeToHire = {
+  averageDays: 12.5,
+  fastest: 3,
+  slowest: 28,
+  trend: 'down'
+};
+
+export const positionDemand = [
+  { position: 'Full Stack Developer', demand: 95, growth: 15 },
+  { position: 'UI/UX Designer', demand: 88, growth: 22 },
+  { position: 'Data Scientist', demand: 82, growth: 18 },
+  { position: 'DevOps Engineer', demand: 78, growth: 12 },
+];
+
+export const recruiterPerformance = {
+  efficiency: 92.5,
+  satisfaction: 4.8,
+  responseTime: 2.3,
+  successRate: 88.2
+};
+
+export const aiEfficiencyGains = {
+  timeSaved: 45,
+  costReduction: 32,
+  accuracy: 94.5,
+  automation: 78
+};

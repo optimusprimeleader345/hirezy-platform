@@ -25,11 +25,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       const interviews = await prisma.interview.findMany({ where: { applicationId }, orderBy: { scheduledAt: "asc" } });
       interviews.forEach(i => events.push({ type: "interview", time: i.scheduledAt, payload: i }));
-      const messages = await prisma.message.findMany({
-        where: { OR: [{ senderId: userId }, { receiverId: userId }] },
-        orderBy: { createdAt: "asc" }
-      });
-      messages.forEach(m => events.push({ type: "message", time: m.createdAt, payload: m }));
+      if (userId && typeof userId === "string") {
+        const messages = await prisma.message.findMany({
+          where: { OR: [{ senderId: userId }, { receiverId: userId }] },
+          orderBy: { createdAt: "asc" }
+        });
+        messages.forEach(m => events.push({ type: "message", time: m.createdAt, payload: m }));
+      }
     } else if (gigId && typeof gigId === "string") {
       const apps = await prisma.application.findMany({ where: { gigId }, orderBy: { createdAt: "asc" } });
       apps.forEach(a => events.push({ type: "application", time: a.createdAt, payload: a }));

@@ -19,10 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const results = [];
     for (const app of applications) {
       const score = await computeScoreAI({
-        resumeText: (app.student && (app.student.resumeText || app.student.profileSummary)) || "",
-        skills: app.student?.skills || [],
-        experienceYears: app.student?.yearsExperience || 0,
-        portfolioLinks: app.student?.portfolioLinks || []
+        resumeText: app.coverLetter || "",
+        skills: [],
+        experienceYears: 0,
+        portfolioLinks: []
       });
 
       // try persist

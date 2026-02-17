@@ -96,7 +96,9 @@ class AuthStore {
       this.state.error = null
 
       // Save to localStorage for persistence
-      localStorage.setItem('hirezy_auth', JSON.stringify(userWithoutPassword))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('hirezy_auth', JSON.stringify(userWithoutPassword))
+      }
       this.notify()
 
       return { success: true }
@@ -113,20 +115,24 @@ class AuthStore {
     this.state.user = null
     this.state.isAuthenticated = false
     this.state.error = null
-    localStorage.removeItem('hirezy_auth')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('hirezy_auth')
+    }
     this.notify()
   }
 
   init(): void {
-    // Check for saved auth in localStorage
-    const savedAuth = localStorage.getItem('hirezy_auth')
-    if (savedAuth) {
-      try {
-        const user = JSON.parse(savedAuth)
-        this.state.user = user
-        this.state.isAuthenticated = true
-      } catch (error) {
-        localStorage.removeItem('hirezy_auth')
+    // Check for saved auth in localStorage (only on client side)
+    if (typeof window !== 'undefined') {
+      const savedAuth = localStorage.getItem('hirezy_auth')
+      if (savedAuth) {
+        try {
+          const user = JSON.parse(savedAuth)
+          this.state.user = user
+          this.state.isAuthenticated = true
+        } catch (error) {
+          localStorage.removeItem('hirezy_auth')
+        }
       }
     }
   }

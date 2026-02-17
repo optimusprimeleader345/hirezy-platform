@@ -4,7 +4,7 @@ import { GlassCard } from '@/components/cards/GlassCard'
 interface ChartWrapperProps {
   title: string
   data: any[]
-  dataKey: string
+  dataKey?: string
   className?: string
   type?: 'line' | 'bar' | 'area' | 'radar'
   dataKeys?: string[]
@@ -53,7 +53,7 @@ export function ChartWrapper({
             labelStyle={{ color: 'white' }}
           />
           <Bar
-            dataKey={dataKey}
+            dataKey={dataKey || 'value'}
             fill={colors[0]}
             stroke={colors[0]}
             strokeWidth={2}
@@ -100,7 +100,7 @@ export function ChartWrapper({
           )) : (
             <Area
               type="monotone"
-              dataKey={dataKey}
+              dataKey={dataKey || 'value'}
               stackId="1"
               stroke={colors[0]}
               fill={colors[0]}
@@ -148,7 +148,7 @@ export function ChartWrapper({
     }
 
     // Default multiline line chart with neon colors
-    const multiLineKeys = dataKeys || [dataKey]
+    const multiLineKeys = dataKeys || [dataKey || 'value']
     const neonColors = ['#06b6d4', '#9333ea', '#10b981', '#f59e0b']
 
     return (

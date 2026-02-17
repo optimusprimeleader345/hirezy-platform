@@ -102,11 +102,13 @@ export default function LoginPage() {
 
   // Load remembered email on page load
   useEffect(() => {
-    const rememberedEmail = localStorage.getItem('hirezy_remembered_email')
-    const rememberSettings = localStorage.getItem('hirezy_remember_me')
-    if (rememberedEmail && rememberSettings === 'true') {
-      setEmail(rememberedEmail)
-      setRememberMe(true)
+    if (typeof window !== 'undefined') {
+      const rememberedEmail = localStorage.getItem('hirezy_remembered_email')
+      const rememberSettings = localStorage.getItem('hirezy_remember_me')
+      if (rememberedEmail && rememberSettings === 'true') {
+        setEmail(rememberedEmail)
+        setRememberMe(true)
+      }
     }
   }, [])
 
@@ -148,12 +150,14 @@ export default function LoginPage() {
 
     if (result.success) {
       // Save remember me settings if checked
-      if (rememberMe) {
-        localStorage.setItem('hirezy_remembered_email', email)
-        localStorage.setItem('hirezy_remember_me', 'true')
-      } else {
-        localStorage.removeItem('hirezy_remembered_email')
-        localStorage.removeItem('hirezy_remember_me')
+      if (typeof window !== 'undefined') {
+        if (rememberMe) {
+          localStorage.setItem('hirezy_remembered_email', email)
+          localStorage.setItem('hirezy_remember_me', 'true')
+        } else {
+          localStorage.removeItem('hirezy_remembered_email')
+          localStorage.removeItem('hirezy_remember_me')
+        }
       }
 
       // Show success message briefly

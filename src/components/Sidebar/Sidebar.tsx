@@ -118,7 +118,7 @@ const adminMenu = [
   { name: '🛡️ Fraud Detection', href: '/admin/fraud', icon: Shield, category: 'Security' },
   { name: '📞 Support Center', href: '/admin/support-center', icon: MessageSquare, category: 'Support' },
 
-  { name: '🏢 Enterprise Features', href: '/admin/monitoring', icon: Activity, category: 'Enterprise' },
+  { name: '📊 Monitoring Dashboard', href: '/admin/monitoring', icon: Activity, category: 'Enterprise' },
   { name: '🧠 Platform Intelligence', href: '/admin/platform-insights', icon: Zap, category: 'Enterprise' },
   { name: '📋 BI Reports Builder', href: '/admin/reports', icon: BarChart3, category: 'Enterprise' },
   { name: '🤖 AI Assistant', href: '/admin/ai-assistant', icon: MessageSquare, category: 'Enterprise' },

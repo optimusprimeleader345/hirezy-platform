@@ -28,6 +28,11 @@ function initializeGoogleAI(): void {
   }
 }
 
+export function getTextModel() {
+  initializeGoogleAI()
+  return textModel
+}
+
 export interface JobMatchResult {
   score: number
   reasoning: string

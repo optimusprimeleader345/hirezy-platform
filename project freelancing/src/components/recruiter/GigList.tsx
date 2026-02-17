@@ -37,3 +37,14 @@ export function GigList({ gigs, selectedGigId, onSelectGig }: GigListProps) {
                       ? 'bg-yellow-500/20 text-yellow-400'
                       : 'bg-gray-500/20 text-gray-400'
                   }`}
+                >
+                  {gig.status}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}

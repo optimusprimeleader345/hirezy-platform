@@ -1,0 +1,11 @@
+node_modules
+backend
+uploads
+dataset
+embeddings
+.vscode
+.env
+.env.local
+.git
+.next
+vercel.json

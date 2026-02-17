@@ -1,4 +1,4 @@
-import { textModel } from './google-ai-service'
+import { getTextModel } from './google-ai-service'
 
 export interface CareerCoachMessage {
   id: string
@@ -90,7 +90,7 @@ ${this.conversationHistory.slice(-5).map(msg => `${msg.role}: ${msg.content}`).j
 Respond naturally to the user's message while providing career guidance.`
 
     try {
-      const completion = await textModel.generateContent(`
+      const completion = await getTextModel().generateContent(`
 ${systemPrompt}
 
 USER'S MESSAGE: "${userMessage}"

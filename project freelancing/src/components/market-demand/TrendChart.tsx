@@ -44,6 +44,4 @@ export function TrendChart({ data, selectedSkill = 'React' }: TrendChartProps) {
       </div>
     </div>
   )
-    </div>
-  )
 }

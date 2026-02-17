@@ -23,6 +23,7 @@ export default function InterviewSchedulerPage() {
 
   // Pre-select values from URL params (for direct links from applicant detail)
   useEffect(() => {
+    if (!searchParams) return;
     const candidateId = searchParams.get('candidateId')
     const gigId = searchParams.get('gigId')
 
@@ -37,6 +38,7 @@ export default function InterviewSchedulerPage() {
 
   // Handle URL parameter changes separately if needed
   useEffect(() => {
+    if (!searchParams) return;
     const candidateId = searchParams.get('candidateId')
     const gigId = searchParams.get('gigId')
 
