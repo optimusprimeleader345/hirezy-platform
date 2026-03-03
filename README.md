@@ -30,12 +30,30 @@ HIREZY addresses these challenges through:
 │   Server/Client │    │   Authentication │    │   Migrations    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
          │                       │                       │
-         │                       │                       │
+         ▼                       ▼                       ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   AI Services   │    │   Redis Cache    │    │   External APIs │
-│   (OpenAI/Gemini)│    │   (Optional)     │    │   (Email, etc.) │
+│   AI Engine     │    │   Redis Cache    │    │   External APIs │
+│   (Python/FastAPI)   │    │   (Optional)     │    │   (Email, etc.) │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
+
+## AI Matching Engine
+
+The HIREZY platform features a state-of-the-art AI matching engine that moves beyond simple keyword matching to semantic, embedding-based candidate evaluation.
+
+### Architecture
+**Frontend** (Next.js) → **API Bridge** (TypeScript) → **Matching Service** (Python) → **Embedding Service** (Sentence-Transformers)
+
+### Core Components
+- **Embedding Generation**: Converts Job Descriptions and Candidate profiles into high-dimensional vectors using `all-MiniLM-L6-v2`.
+- **Similarity Scoring**: Computes cosine similarity between vectors to determine mathematical alignment.
+- **Weighted Scoring Formula**:
+  - **60% Semantic Similarity**: Core alignment of intent and context.
+  - **20% Skill Overlap**: Direct match of required technical and soft skills.
+  - **10% Experience Relevance**: Alignment of career trajectory with job level.
+  - **10% Education Relevance**: Academic background verification.
+- **Explainability Layer**: Generates natural language justifications (e.g., *"Candidate matches 90% required skills and has relevant project experience..."*) to help recruiters understand the "Why" behind the score.
+- **Resume Strength Analyzer**: Heuristic-based analysis that identifies missing keywords and suggests profile improvements.
 
 ### Key Components
 
@@ -92,8 +110,10 @@ HIREZY addresses these challenges through:
 - **Authentication**: NextAuth.js with multiple providers
 
 ### AI & Machine Learning
-- **OpenAI API**: GPT models for content generation and analysis
-- **Google Gemini**: Alternative AI service for redundancy
+- **Python AI Engine**: Modular microservice for embeddings and weighted matching
+- **Sentence-Transformers**: Lightweight, high-performance embedding models (`all-MiniLM-L6-v2`)
+- **FastAPI**: High-performance Python API framework for AI services
+- **Google Gemini & OpenAI**: Large Language Models for advanced reasoning and explanation generation
 - **Prompt Engineering**: Structured approach to AI interactions
 - **Caching Strategy**: Optimized AI response handling
 

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Mail, MapPin, Star, User, CheckCircle, XCircle, Clock, MessageSquare } from 'lucide-react'
+import { Mail, MapPin, Star, User, CheckCircle, XCircle, Clock, MessageSquare, Brain } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { type Applicant } from '@/lib/ai/recruiter/mockData'
@@ -69,11 +69,10 @@ export function ApplicantList({ applicants, onSelectApplicant, selectedApplicant
             <div
               key={applicant.id}
               onClick={() => onSelectApplicant(applicant)}
-              className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
-                selectedApplicantId === applicant.id
-                  ? 'border-purple-500 bg-purple-500/10'
-                  : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
-              }`}
+              className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${selectedApplicantId === applicant.id
+                ? 'border-purple-500 bg-purple-500/10'
+                : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
+                }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-4 flex-1">
@@ -86,9 +85,8 @@ export function ApplicantList({ applicants, onSelectApplicant, selectedApplicant
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="text-white font-semibold truncate">{applicant.name}</h4>
-                      <div className={`px-2 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1 ${
-                        getStatusColor(applicant.status)
-                      }`}>
+                      <div className={`px-2 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusColor(applicant.status)
+                        }`}>
                         {getStatusIcon(applicant.status)}
                         {applicant.status}
                       </div>
@@ -104,8 +102,8 @@ export function ApplicantList({ applicants, onSelectApplicant, selectedApplicant
                         {applicant.experience} years exp
                       </div>
                       {applicant.matchScore && (
-                        <div className="flex items-center gap-1 text-green-400 font-medium">
-                          <Star className="w-3 h-3" />
+                        <div className="flex items-center gap-1 text-purple-400 font-medium bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                          <Brain className="w-3 h-3" />
                           {applicant.matchScore}% match
                         </div>
                       )}

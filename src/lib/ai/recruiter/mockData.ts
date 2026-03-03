@@ -47,6 +47,13 @@ export interface Applicant {
   appliedDate: string;
   status: 'applied' | 'shortlisted' | 'rejected' | 'interviewed' | 'hired';
   matchScore?: number;
+  matchBreakdown?: {
+    embedding_score: number;
+    skill_match_score: number;
+    experience_score: number;
+    education_score: number;
+  };
+  matchExplanation?: string;
   salaryExpectation?: string;
   timeline?: TimelineEvent[];
 }
@@ -109,6 +116,9 @@ export const mockApplicants: Applicant[] = [
     appliedDate: '2025-01-20',
     status: 'shortlisted',
     salaryExpectation: '120k-140k USD',
+    matchScore: 87,
+    matchBreakdown: { embedding_score: 88, skill_match_score: 85, experience_score: 90, education_score: 82 },
+    matchExplanation: 'Strong React and TypeScript expertise matches 85% of required skills. 5 years of relevant experience exceeds the job level requirements. Stanford CS degree adds credibility.',
   },
   {
     id: 'app-2',
@@ -132,6 +142,9 @@ export const mockApplicants: Applicant[] = [
     appliedDate: '2025-01-18',
     status: 'applied',
     salaryExpectation: '80k-100k EUR',
+    matchScore: 82,
+    matchBreakdown: { embedding_score: 83, skill_match_score: 90, experience_score: 75, education_score: 80 },
+    matchExplanation: 'Excellent frontend skill breadth with advanced React, JS, CSS, and HTML. Full-stack experience adds versatility. MS in CS provides strong foundational alignment.',
   },
   {
     id: 'app-3',
@@ -154,6 +167,9 @@ export const mockApplicants: Applicant[] = [
     appliedDate: '2025-01-15',
     status: 'interviewed',
     salaryExpectation: '100k-130k GBP',
+    matchScore: 91,
+    matchBreakdown: { embedding_score: 93, skill_match_score: 88, experience_score: 95, education_score: 92 },
+    matchExplanation: 'Top-ranked candidate. React and Next.js expertise aligns precisely with job requirements. 6 years of experience and leadership background significantly exceeds expectations. PhD in CS is a major differentiator.',
   },
   {
     id: 'app-4',
@@ -171,6 +187,9 @@ export const mockApplicants: Applicant[] = [
     appliedDate: '2025-01-12',
     status: 'applied',
     salaryExpectation: '6k-8k BRL/month',
+    matchScore: 67,
+    matchBreakdown: { embedding_score: 65, skill_match_score: 70, experience_score: 60, education_score: 55 },
+    matchExplanation: 'Good JavaScript and CSS skills. Vue.js and React overlap partially. 3 years of experience is slightly below the recommended mid-level range. Missing TypeScript and Next.js from required skills.',
   },
   {
     id: 'app-5',
@@ -193,6 +212,9 @@ export const mockApplicants: Applicant[] = [
     appliedDate: '2025-01-10',
     status: 'shortlisted',
     salaryExpectation: '180k-220k AUD',
+    matchScore: 93,
+    matchBreakdown: { embedding_score: 95, skill_match_score: 97, experience_score: 92, education_score: 88 },
+    matchExplanation: 'Exceptional match. All 5 required skills matched at advanced level. 7 years of experience with cloud-native development is a strong asset. Senior background aligns perfectly with the role scope.',
   },
   {
     id: 'app-6',
@@ -210,6 +232,9 @@ export const mockApplicants: Applicant[] = [
     appliedDate: '2025-01-08',
     status: 'rejected',
     salaryExpectation: '30M-40M KRW/month',
+    matchScore: 51,
+    matchBreakdown: { embedding_score: 50, skill_match_score: 55, experience_score: 42, education_score: 60 },
+    matchExplanation: 'Design-focused profile partially matches. React and JavaScript are present but at intermediate levels. Missing TypeScript, Next.js, and Node.js which are all required. Limited development experience relative to the job level.',
   },
 ];
 
@@ -232,7 +257,9 @@ export const realApplicants: Applicant[] = [
     appliedDate: "2025-11-20",
     status: "applied",
     salaryExpectation: "₹25k-35k/month",
-    matchScore: 4.6,
+    matchScore: 78,
+    matchBreakdown: { embedding_score: 79, skill_match_score: 80, experience_score: 70, education_score: 75 },
+    matchExplanation: 'Good React and Next.js match with the Frontend Developer role. JavaScript proficiency is a plus. Skills like TypeScript and Tailwind CSS are missing, which limits the overall score.',
     timeline: [
       {
         id: "t1",
@@ -269,7 +296,9 @@ export const realApplicants: Applicant[] = [
     appliedDate: "2025-11-18",
     status: "applied",
     salaryExpectation: "₹15k-25k/month",
-    matchScore: 4.8,
+    matchScore: 85,
+    matchBreakdown: { embedding_score: 86, skill_match_score: 90, experience_score: 72, education_score: 78 },
+    matchExplanation: 'Strong match on React and Tailwind CSS — both key requirements for the Frontend React Developer role. TypeScript knowledge is a bonus. Limited experience (1 year) reduces the score slightly.',
     timeline: [
       {
         id: "t1",
@@ -314,7 +343,9 @@ export const realApplicants: Applicant[] = [
     appliedDate: "2025-11-15",
     status: "shortlisted",
     salaryExpectation: "₹10k-15k/month",
-    matchScore: 4.2
+    matchScore: 58,
+    matchBreakdown: { embedding_score: 55, skill_match_score: 50, experience_score: 45, education_score: 60 },
+    matchExplanation: 'Entry-level profile. Basic HTML, CSS, JavaScript skills partially match. Missing React, TypeScript and all framework-specific requirements. Bootcamp background shows strong motivation.',
   },
   {
     id: "app4",
@@ -334,7 +365,9 @@ export const realApplicants: Applicant[] = [
     appliedDate: "2025-11-22",
     status: "applied",
     salaryExpectation: "₹35k-55k/month",
-    matchScore: 4.7
+    matchScore: 74,
+    matchBreakdown: { embedding_score: 72, skill_match_score: 75, experience_score: 80, education_score: 68 },
+    matchExplanation: 'Strong backend profile with Node.js, Express, MongoDB. Solid experience level matches mid-level. Missing frontend skills required by the posting. MCA in Computer Applications provides relevant academic background.',
   },
   {
     id: "app5",
@@ -353,7 +386,9 @@ export const realApplicants: Applicant[] = [
     appliedDate: "2025-11-12",
     status: "interviewed",
     salaryExpectation: "₹12k-18k/month",
-    matchScore: 4.9
+    matchScore: 69,
+    matchBreakdown: { embedding_score: 68, skill_match_score: 65, experience_score: 62, education_score: 75 },
+    matchExplanation: 'Design skills (Figma, UI/UX) are complementary but not primary. No coding skills detected. Interaction Design degree is relevant. Suitable for hybrid design-frontend roles, less ideal for pure development positions.',
   }
 ];
 

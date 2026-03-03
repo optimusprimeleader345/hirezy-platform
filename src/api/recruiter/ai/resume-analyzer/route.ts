@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { optimizeResumeATS } from '@/lib/ai/openai-service'
-import { textModel } from '@/lib/ai/google-ai-service'
+import { getTextModel } from '@/lib/ai/google-ai-service'
+import { callPythonResumeAnalysis } from '@/lib/ai/python-ai-bridge'
 
 interface ResumeAnalysisRequest {
   resumeFile?: File
@@ -40,6 +41,7 @@ interface ResumeAnalysisResponse {
     formatting: number
     relevance: number
     suggestions: string[]
+    missingKeywords?: string[]
   }
   personalityTraits: {
     communicationStyle: string
@@ -135,8 +137,37 @@ Provide detailed analysis in JSON format:
 Be thorough and specific in the analysis. Focus on actionable insights for recruiters.
 `
 
-    const analysisResult = await textModel.generateContent(comprehensivePrompt)
-    const analysis = JSON.parse(analysisResult.response.text())
+    // Prepare profile data for Python service
+    const pythonProfile = {
+      resumeText,
+      targetRole,
+      skills: [], // Extracted or provided
+      experience: [],
+      projects: []
+    }
+
+    // Try Python-based AI resume strength analyzer first
+    const pythonAnalysis = await callPythonResumeAnalysis(pythonProfile, jobDescription ? { description: jobDescription } : null);
+
+    // Concurrent AI analysis using Gemini (existing logic)
+    const textModel = getTextModel();
+    const analysisResult = await textModel.generateContent(comprehensivePrompt);
+    const analysis = JSON.parse(analysisResult.response.text());
+
+    // Merge Python analysis with Gemini analysis
+    if (pythonAnalysis) {
+      analysis.atsCompatibility = {
+        ...(analysis.atsCompatibility || {}),
+        overallScore: pythonAnalysis.strength_score,
+        issues: pythonAnalysis.breakdown ? Object.entries(pythonAnalysis.breakdown).filter(([_, v]) => (v as number) < 70).map(([k, _]) => `Low ${k} score`) : [],
+        improvements: pythonAnalysis.suggestions || []
+      };
+
+      analysis.marketReadiness = {
+        ...(analysis.marketReadiness || {}),
+        missingKeywords: pythonAnalysis.missing_keywords || []
+      };
+    }
 
     // Get ATS scoring if job description is provided
     let atsScore = null
@@ -162,7 +193,8 @@ Be thorough and specific in the analysis. Focus on actionable insights for recru
         keywordDensity: atsScore?.score || analysis.atsCompatibility?.keywordOptimization || 70,
         formatting: analysis.atsCompatibility?.formatScore || 80,
         relevance: analysis.atsCompatibility?.overallScore || 75,
-        suggestions: atsScore?.suggestions || analysis.atsCompatibility?.improvements || []
+        suggestions: [...(atsScore?.suggestions || []), ...(analysis.atsCompatibility?.improvements || [])],
+        missingKeywords: analysis.marketReadiness?.missingKeywords || []
       },
       personalityTraits: {
         communicationStyle: analysis.personalityInsights?.communicationStyle || 'Clear and professional',

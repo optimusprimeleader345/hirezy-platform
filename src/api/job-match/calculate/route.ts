@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { calculateJobMatch } from '@/lib/ai/google-ai-service'
+import { callPythonMatching } from '@/lib/ai/python-ai-bridge'
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,15 +66,39 @@ export async function POST(request: NextRequest) {
       projects: [`${title} requiring: ${description}`]
     }
 
-    // Use AI-powered job matching with semantic similarity
-    const matchResult = await calculateJobMatch(studentData, description, title)
+    // Prepare job data for Python service
+    const pythonJobData = {
+      title,
+      description,
+      skills: Array.isArray(skills) ? skills : [],
+      experience_requirements: [`${experienceLevel} level experience`],
+      education_requirements: []
+    }
+
+    // Try Python-based AI matching with weighted scoring first
+    let matchResult;
+    const pythonMatch = await callPythonMatching(pythonJobData, studentData);
+
+    if (pythonMatch) {
+      matchResult = {
+        score: pythonMatch.total_score,
+        reasoning: pythonMatch.explanation,
+        matchingSkills: pythonMatch.top_matching_skills,
+        missing_skills: pythonMatch.missing_skills,
+        breakdown: pythonMatch.breakdown,
+        similarity: pythonMatch.similarity
+      };
+    } else {
+      // Fallback to original AI-powered matching if Python service is unavailable
+      matchResult = await calculateJobMatch(studentData, description, title);
+    }
 
     return NextResponse.json({
       success: true,
       data: matchResult,
       _meta: {
         processedAt: new Date().toISOString(),
-        algorithmVersion: '1.0.0',
+        algorithmVersion: pythonMatch ? '2.0.0-python-weighted' : '1.5.0-google-semantic',
         dataSource: 'aggregated_student_modules'
       }
     })

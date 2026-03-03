@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { calculateJobMatch } from '@/lib/ai/google-ai-service'
-import { textModel } from '@/lib/ai/google-ai-service'
+import { calculateJobMatch, getTextModel } from '@/lib/ai/google-ai-service'
+import { callPythonMatching } from '@/lib/ai/python-ai-bridge'
 
 interface CandidateData {
   id?: string
@@ -78,25 +78,32 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Prepare data for AI matching
+    // 1. Prepare data for AI matching
     const candidateData = {
+      name: candidate.name || 'Candidate',
       skills: Array.isArray(candidate.skills) ? candidate.skills : [],
       experience: Array.isArray(candidate.experience) ? candidate.experience : [],
       education: Array.isArray(candidate.education) ? candidate.education : [],
-      projects: Array.isArray(candidate.projects) ? candidate.projects : []
+      projects: Array.isArray(candidate.projects) ? candidate.projects : [],
+      summary: candidate.resumeText || ''
     }
 
     const jobData = {
+      title: jobRequirements.title,
+      description: jobRequirements.description,
       skills: Array.isArray(jobRequirements.skills) ? jobRequirements.skills : [],
-      experience: [`${jobRequirements.experienceLevel} level required`],
-      education: [],
-      projects: [`${jobRequirements.title} position`]
+      experience_requirements: [`${jobRequirements.experienceLevel} level`],
+      education_requirements: []
     }
 
-    // Get semantic similarity score
+    // 2. Try Python-based AI matching with weighted scoring
+    const pythonMatch = await callPythonMatching(jobData, candidateData);
+
+    // 3. Get semantic similarity score (fallback/parallel)
     const semanticMatch = await calculateJobMatch(candidateData, jobRequirements.description, jobRequirements.title)
 
-    // Advanced AI scoring analysis
+    // 4. Advanced AI scoring analysis via Gemini
+    const textModel = getTextModel()
     const scoringPrompt = `
 Analyze this candidate for the job position and provide comprehensive scoring:
 
@@ -150,19 +157,19 @@ Focus on recruitment decision-making insights. Be specific and actionable.
     // Calculate ranking position
     const ranking = rankingPosition || 1
 
-    // Generate final response
+    // 5. Generate final response
     const response: CandidateScoringResponse = {
       candidateId: candidate.id,
-      overallScore: semanticMatch.score,
-      skillMatchScore: semanticMatch.score,
-      experienceMatchScore: analysis.experienceCompatibility || 75,
+      overallScore: pythonMatch?.total_score || semanticMatch.score,
+      skillMatchScore: pythonMatch?.breakdown?.skill_match_score || semanticMatch.score,
+      experienceMatchScore: pythonMatch?.breakdown?.experience_score || analysis.experienceCompatibility || 75,
       culturalFitScore: analysis.culturalFit?.score || 70,
       motivationScore: analysis.motivationAndFit?.score || 75,
-      ranking,
+      ranking: rankingPosition || 1,
       grade: analysis.grade || (semanticMatch.score >= 90 ? 'A+' : semanticMatch.score >= 80 ? 'A' : 'B'),
-      confidence: Math.max(60, Math.min(95, semanticMatch.score + 10)),
-      strengths: analysis.strengths || semanticMatch.matchingSkills || [],
-      weaknesses: analysis.gaps || semanticMatch.missingSkills || [],
+      confidence: Math.max(60, Math.min(95, (pythonMatch?.total_score || semanticMatch.score) + 10)),
+      strengths: analysis.strengths || pythonMatch?.top_matching_skills || semanticMatch.matchingSkills || [],
+      weaknesses: analysis.gaps || pythonMatch?.missing_skills || semanticMatch.missingSkills || [],
       recommendations: {
         interviewUrgency: analysis.interviewRecommendation?.priority || 'Medium',
         suggestedSalaryRange: analysis.compensation?.suggestedRange || jobRequirements.salaryRange || 'Competitive',
@@ -171,39 +178,39 @@ Focus on recruitment decision-making insights. Be specific and actionable.
           'Review portfolio',
           'Check references'
         ],
-        questions: analysis.interviewRecommendation?.questions || [
-          'Can you walk us through your most challenging project?',
-          'Why are you interested in this role?'
-        ]
+        questions: [
+          ...(analysis.interviewRecommendation?.questions || []),
+          ...(pythonMatch?.explanation ? [pythonMatch.explanation] : [])
+        ].slice(0, 5)
       },
       detailedBreakdown: {
         technicalSkills: {
-          matched: semanticMatch.matchingSkills || [],
-          missing: semanticMatch.missingSkills || [],
-          score: semanticMatch.score
+          matched: pythonMatch?.top_matching_skills || semanticMatch.matchingSkills || [],
+          missing: pythonMatch?.missing_skills || semanticMatch.missingSkills || [],
+          score: pythonMatch?.breakdown?.skill_match_score || semanticMatch.score
         },
         softSkills: {
-          inferred: ['Communication', 'Problem-solving', 'Teamwork'], // Could be enhanced
+          inferred: ['Communication', 'Problem-solving', 'Teamwork'],
           score: analysis.culturalFit?.score || 70
         },
         experienceFit: {
           level: jobRequirements.experienceLevel,
           years: candidate.experience?.length || 2,
-          score: analysis.experienceCompatibility || 75
+          score: pythonMatch?.breakdown?.experience_score || analysis.experienceCompatibility || 75
         },
         growthPotential: {
-          score: Math.min(100, semanticMatch.score + 20),
+          score: Math.min(100, (pythonMatch?.total_score || semanticMatch.score) + 20),
           insights: [
             'Shows strong learning potential',
-            'Adapts to new technologies well',
-            'Demonstrates continuous improvement'
+            'Based on semantic alignment: ' + (pythonMatch?.similarity.toFixed(2) || '0.00'),
+            'Weighted alignment version 2.0'
           ]
         }
       },
       marketInsights: {
         competitiveness: analysis.compensation?.marketCompetitiveness || 'Medium',
         salaryExpectations: analysis.compensation?.suggestedRange || 'Market rate',
-        marketDemand: semanticMatch.score > 75 ? 'High demand' : 'Standard demand'
+        marketDemand: (pythonMatch?.total_score || semanticMatch.score) > 75 ? 'High demand' : 'Standard demand'
       }
     }
 

@@ -36,6 +36,7 @@ interface ResumeAnalysis {
   keySkills: string[]
   strengths: string[]
   weaknesses: string[]
+  missingKeywords?: string[]
   atsScore: number
   note: string
 }
@@ -379,11 +380,10 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-purple-500 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-white/10'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
+                    ? 'bg-purple-500 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
@@ -403,6 +403,55 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                   ) : (
                     <p className="text-gray-500 italic">No proposal provided</p>
                   )}
+                </div>
+
+                {/* New AI Alignment Section */}
+                <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-2xl p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Brain className="w-5 h-5 text-purple-400" />
+                    <h3 className="text-lg font-semibold text-white">AI Alignment Analysis</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-400">Overall Match Score</span>
+                        <span className="text-purple-400 font-bold">{applicant.matchScore || 0}%</span>
+                      </div>
+                      <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-purple-500 to-blue-500 h-full transition-all duration-1000"
+                          style={{ width: `${applicant.matchScore || 0}%` }}
+                        />
+                      </div>
+
+                      {applicant.matchExplanation && (
+                        <p className="text-sm text-gray-300 italic bg-white/5 p-3 rounded-lg border border-white/5">
+                          "{applicant.matchExplanation}"
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Score Breakdown</h4>
+                      {[
+                        { label: 'Embedding similarity (60%)', value: applicant.matchBreakdown?.embedding_score || 0 },
+                        { label: 'Skill overlap (20%)', value: applicant.matchBreakdown?.skill_match_score || 0 },
+                        { label: 'Experience relevance (10%)', value: applicant.matchBreakdown?.experience_score || 0 },
+                        { label: 'Education relevance (10%)', value: applicant.matchBreakdown?.education_score || 0 },
+                      ].map((item, i) => (
+                        <div key={i} className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-400">{item.label}</span>
+                            <span className="text-white">{item.value}/100</span>
+                          </div>
+                          <div className="w-full bg-white/5 rounded-full h-1">
+                            <div className="bg-purple-500/40 h-full" style={{ width: `${item.value}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -490,6 +539,23 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                         <span>100%</span>
                       </div>
                     </div>
+
+                    {/* Missing Keywords / Gaps */}
+                    {resumeAnalysis.missingKeywords && resumeAnalysis.missingKeywords.length > 0 && (
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                        <h4 className="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
+                          <XCircle className="w-4 h-4" />
+                          Missing Job Keywords
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {resumeAnalysis.missingKeywords.map((keyword, index) => (
+                            <span key={index} className="px-2 py-0.5 bg-red-500/20 text-red-300 rounded-full text-xs">
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Key Skills */}
@@ -775,7 +841,7 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                 <input
                   type="date"
                   value={scheduleForm.date}
-                  onChange={(e) => setScheduleForm({...scheduleForm, date: e.target.value})}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, date: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                   min={new Date().toISOString().split('T')[0]}
                 />
@@ -786,7 +852,7 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                 <input
                   type="time"
                   value={scheduleForm.time}
-                  onChange={(e) => setScheduleForm({...scheduleForm, time: e.target.value})}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, time: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
@@ -799,7 +865,7 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                       type="radio"
                       value="online"
                       checked={scheduleForm.mode === 'online'}
-                      onChange={(e) => setScheduleForm({...scheduleForm, mode: e.target.value as 'online' | 'offline'})}
+                      onChange={(e) => setScheduleForm({ ...scheduleForm, mode: e.target.value as 'online' | 'offline' })}
                       className="mr-2"
                     />
                     <span className="text-white">Online</span>
@@ -809,7 +875,7 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                       type="radio"
                       value="offline"
                       checked={scheduleForm.mode === 'offline'}
-                      onChange={(e) => setScheduleForm({...scheduleForm, mode: e.target.value as 'online' | 'offline'})}
+                      onChange={(e) => setScheduleForm({ ...scheduleForm, mode: e.target.value as 'online' | 'offline' })}
                       className="mr-2"
                     />
                     <span className="text-white">Offline</span>
@@ -824,7 +890,7 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                     type="url"
                     placeholder="https://zoom.us/..."
                     value={scheduleForm.meetingLink}
-                    onChange={(e) => setScheduleForm({...scheduleForm, meetingLink: e.target.value})}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, meetingLink: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -834,7 +900,7 @@ export default function ApplicantDetail({ applicant, onBack }: ApplicantDetailPr
                 <label className="block text-sm font-medium text-white mb-2">Notes (Optional)</label>
                 <textarea
                   value={scheduleForm.notes}
-                  onChange={(e) => setScheduleForm({...scheduleForm, notes: e.target.value})}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
                   placeholder="Any additional notes for this interview..."
                   className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                   rows={3}
