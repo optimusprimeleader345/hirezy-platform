@@ -231,8 +231,8 @@ credentials.json
 .auth0
 
 # Google Cloud
-*.json
 gcp-service-account.json
+*-service-account*.json
 
 # AWS
 .aws/
