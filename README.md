@@ -189,42 +189,24 @@ Every score includes a human-readable explanation:
 
 ```
 hirezy-platform/
-├── src/
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── admin/              # Admin dashboard
-│   │   ├── recruiter/          # Recruiter interface
-│   │   ├── student/            # Student interface
-│   │   └── api/                # API route handlers
-│   ├── components/
-│   │   ├── admin/              # Admin-specific UI
-│   │   ├── recruiter/          # Recruiter components
-│   │   │   ├── ApplicantDetail.tsx   # AI Alignment card, score breakdown
-│   │   │   └── ApplicantList.tsx     # AI ranked list with match badges
-│   │   ├── student/            # Student components
-│   │   └── ui/                 # Base UI library (Button, Card, etc.)
-│   ├── lib/
-│   │   ├── ai/
-│   │   │   ├── embedding_service.py     # Vector embedding generation
-│   │   │   ├── matching_service.py      # Weighted AI scoring
-│   │   │   ├── google-ai-service.ts     # Gemini integration
-│   │   │   ├── openai-service.ts        # OpenAI integration
-│   │   │   └── python-ai-bridge.ts      # Next.js → Python bridge
-│   │   └── prisma.ts           # Prisma client singleton
-│   └── types/                  # TypeScript type definitions
-├── python_ai/
-│   ├── main.py                 # FastAPI entry point
-│   ├── requirements.txt        # Python dependencies
-│   ├── services/
-│   │   ├── embedding_service.py     # Sentence-transformers model
-│   │   ├── matching_service.py      # Weighted scoring + explanation
-│   │   └── resume_strength.py       # Resume heuristic analyzer
-│   └── tests/
-│       └── test_services.py         # 15 pytest unit tests
-├── prisma/
-│   └── schema.prisma           # Database schema
-├── AI_SCORING.md               # AI scoring formula documentation
-├── .env.example                # Environment variable template
-└── README.md                   # This file
+├── frontend/                   # Next.js UI (port 3000)
+│   ├── src/
+│   │   ├── app/                # Pages: admin, recruiter, student, login
+│   │   ├── components/         # React UI components
+│   │   ├── hooks/              # Custom React hooks
+│   │   ├── lib/                # Client helpers, mocks, API clients
+│   │   └── providers/          # React Query and app providers
+│   └── package.json
+├── backend/                    # API + database + AI (port 3001)
+│   ├── src/
+│   │   ├── app/api/            # App Router API routes
+│   │   ├── pages/api/          # Legacy Pages Router API routes
+│   │   └── lib/                # Prisma, AI services, server logic
+│   ├── prisma/                 # Database schema and migrations
+│   ├── python_ai/              # FastAPI AI matching engine (port 8000)
+│   └── package.json
+├── package.json                # Root workspace — run both apps together
+└── README.md
 ```
 
 ---
@@ -249,6 +231,8 @@ npm install
 ```bash
 cp .env.example .env.local
 # Edit .env.local and fill in your values
+# Copy the same file to backend/.env.local for the API server
+cp .env.local backend/.env.local
 ```
 
 **Required variables:**
@@ -256,6 +240,8 @@ cp .env.example .env.local
 DATABASE_URL="postgresql://user:password@localhost:5432/hirezy"
 NEXTAUTH_SECRET="your-secret"
 NEXTAUTH_URL="http://localhost:3000"
+BACKEND_URL="http://localhost:3001"
+NEXT_PUBLIC_API_URL="http://localhost:3000"
 GOOGLE_AI_API_KEY="your-google-ai-key"
 OPENAI_API_KEY="sk-your-openai-key"
 PYTHON_AI_SERVICE_URL="http://localhost:8000"
@@ -264,25 +250,28 @@ PYTHON_AI_SERVICE_URL="http://localhost:8000"
 ### 3. Database Setup
 
 ```bash
-npx prisma migrate dev
-npx prisma db seed
+npm run db:migrate
+npm run db:seed
 ```
 
 ### 4. Start Python AI Engine
 
 ```bash
-cd python_ai
-pip install -r requirements.txt
-python main.py
+npm run dev:ai
 # → Python AI service starts on http://localhost:8000
 ```
 
-### 5. Start Next.js App
+### 5. Start the Platform
 
 ```bash
-# In a new terminal from project root
+# Runs frontend (3000) + backend API (3001) together
 npm run dev
-# → App starts on http://localhost:3000
+```
+
+Or run separately:
+```bash
+npm run dev:backend   # API on http://localhost:3001
+npm run dev:frontend  # UI on http://localhost:3000
 ```
 
 ### Demo Credentials (Development Only)

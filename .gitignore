@@ -18,6 +18,10 @@ node_modules/
 /dist
 /.next/
 /out/
+frontend/.next/
+frontend/out/
+backend/.next/
+backend/out/
 /.nextjs
 vercel
 
