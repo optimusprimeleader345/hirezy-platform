@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+process.env.NEXT_PRIVATE_IGNORE_LOCKFILE = '1';
 const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
 
 const nextConfig = {

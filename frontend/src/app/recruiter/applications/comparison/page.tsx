@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,7 @@ import {
   Zap
 } from 'lucide-react'
 
-export default function ComparisonPage() {
+function ComparisonContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -274,3 +274,12 @@ export default function ComparisonPage() {
     </div>
   )
 }
+
+export default function ComparisonPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-900 flex items-center justify-center text-white/70">Loading...</div>}>
+      <ComparisonContent />
+    </Suspense>
+  )
+}
+

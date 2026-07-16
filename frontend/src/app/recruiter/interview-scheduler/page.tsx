@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import CandidateSelector from '@/components/recruiter/interview/CandidateSelector'
 import GigSelector from '@/components/recruiter/interview/GigSelector'
@@ -10,7 +10,7 @@ import InterviewPlanOutput from '@/components/recruiter/interview/InterviewPlanO
 import { Button } from '@/components/ui/button'
 import { Sparkles, Loader2 } from 'lucide-react'
 
-export default function InterviewSchedulerPage() {
+function InterviewSchedulerContent() {
   const searchParams = useSearchParams()
   // Removed unused router
 
@@ -185,3 +185,12 @@ export default function InterviewSchedulerPage() {
     </div>
   )
 }
+
+export default function InterviewSchedulerPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-900 flex items-center justify-center text-white/70">Loading...</div>}>
+      <InterviewSchedulerContent />
+    </Suspense>
+  )
+}
+

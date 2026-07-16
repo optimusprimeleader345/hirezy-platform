@@ -1,10 +1,6 @@
 'use client'
 
-'use client'
-
-'use client'
-
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, LogIn, Users, Briefcase, Shield, ArrowRight, ArrowLeft, CheckCircle, Check, AlertTriangle, Lightbulb } from 'lucide-react'
@@ -48,7 +44,7 @@ const demoAccounts: DemoAccount[] = [
   }
 ]
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
   const { login, isLoading, error, user } = useAuth()
 
@@ -610,3 +606,12 @@ export default function LoginPage() {
     </div>
   )
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-900 flex items-center justify-center text-white/70">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  )
+}
+
